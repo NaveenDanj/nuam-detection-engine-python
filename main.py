@@ -21,9 +21,12 @@
 # start_sniffing(on_packet)
 
 from multiprocessing import Process
-from network.runner import generate_test_traffic, start_detection_engine
+from network.runner import create_lab_network, generate_test_traffic, start_detection_engine
 
 if __name__ == "__main__":
+    
+    create_lab_network()
+    
     detector_process = Process(target=start_detection_engine)
     traffic_process = Process(target=generate_test_traffic)
 
