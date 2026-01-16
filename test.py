@@ -71,3 +71,6 @@ def create_lab_network():
     print("*** Stopping network")
     net.stop()
 
+if __name__ == '__main__':
+    setLogLevel('info')
+    create_lab_network()
