@@ -41,7 +41,6 @@ def create_lab_network():
 
     print("*** Configuring port mirroring")
 
-    # Find IDS port name on switch
     ids_port = None
     for port in s1.intfList():
         if port.link:
