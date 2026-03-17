@@ -21,6 +21,7 @@ class Logger:
 
         def on_message(ws, message):
             print(f"[Message] {message}")
+            # pass
 
         def on_close(ws, close_status_code, close_msg):
             self.ws_connected = False

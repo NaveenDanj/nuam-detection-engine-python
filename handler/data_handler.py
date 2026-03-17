@@ -6,6 +6,7 @@ import time
 from packet_analyzer.device_connectivity_analyzer import ConnectivityJoinAnalyzer
 from packet_analyzer.device_stat_analyzer import DeviceStatAnalyzer
 from packet_analyzer.metric_analyzer import MetricAnalyzer
+from packet_analyzer.host_analyzer import HostNameAnalyzer
 from handler.periodic_checker_handler import PeriodicCheckerHandler
 
 class DataHandler:
@@ -42,12 +43,14 @@ class DataHandler:
         self.timeout_seconds = 60
         self.idle_seconds = 30
         self.mectric_analyzer = MetricAnalyzer(event_type_handler)
+        self.host_name_analyzer = HostNameAnalyzer(event_type_handler)
         self.device_connectivity_analyzer = ConnectivityJoinAnalyzer(event_type_handler , "10.0.0.0/8")
         self.periodic_checker = PeriodicCheckerHandler()
         self.deviceStatAnalyzer = DeviceStatAnalyzer(event_type_handler)
 
     def handle_observed_data(self, pkt, details, observed_type):
         self.mectric_analyzer.analyze(details, self.known_devices , self.metric_data)
+        self.host_name_analyzer.analyze(details, self.known_devices , self.metric_data)
         self.device_connectivity_analyzer.analyze(pkt, details, self.known_devices , self.metric_data , self.generate_event)
         self.deviceStatAnalyzer.analyze(details, self.known_devices)
         

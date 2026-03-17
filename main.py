@@ -1,32 +1,32 @@
 import subprocess
 from threading import Thread
-# from network.topology import create_lab_network
-# from network.runner import generate_test_traffic
-# from mininet.cli import CLI
+from network.topology import create_lab_network
+from network.runner import generate_test_traffic
+from mininet.cli import CLI
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 if __name__ == "__main__":
-    # from mininet.log import setLogLevel
-    # setLogLevel("info")
+    from mininet.log import setLogLevel
+    setLogLevel("info")
 
-    # net = create_lab_network()
+    net = create_lab_network()
 
-    # traffic_thread = Thread(
-    #     target=generate_test_traffic,
-    #     args=(net,),
-    #     daemon=True
-    # )
-    # traffic_thread.start()
+    traffic_thread = Thread(
+        target=generate_test_traffic,
+        args=(net,),
+        daemon=True
+    )
+    traffic_thread.start()
 
-    # hIDS = net.get('hIDS')
-    # print("*** Starting detection engine on hIDS")
+    hIDS = net.get('hIDS')
+    print("*** Starting detection engine on hIDS")
     
     det_engine_proc = subprocess.Popen(
-        # ["sudo", "-E", "python3", os.getenv("DETECTION_ENGINE_PATH")],
-        ["python", os.getenv("DETECTION_ENGINE_PATH")],
+        ["sudo", "-E", "python3", os.getenv("DETECTION_ENGINE_PATH")],
+        # ["python", os.getenv("DETECTION_ENGINE_PATH")],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -62,6 +62,6 @@ if __name__ == "__main__":
 
             break
                 
-    # CLI(net)
+    CLI(net)
 
-    # net.stop()
+    net.stop()

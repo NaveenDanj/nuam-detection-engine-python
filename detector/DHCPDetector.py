@@ -27,6 +27,7 @@ class DHCPDetector(Detector):
         hostname = None
         requested_ip = None
         server_id = None
+        subnet_mask = None
 
 
         for option in dhcp_layer.options:
@@ -39,6 +40,8 @@ class DHCPDetector(Detector):
                     requested_ip = option[1]
                 elif option[0] == "server_id":
                     server_id = option[1]
+                elif option[0] == "subnet_mask":
+                    subnet_mask = option[1]
 
         details = {
             "packet_type": "DHCP",
@@ -61,7 +64,10 @@ class DHCPDetector(Detector):
             "requested_ip": requested_ip,
             "server_identifier": server_id,
             "data_sent": len(packet),
-            "is_broadcast": eth_layer.dst == "ff:ff:ff:ff:ff:ff" if eth_layer else False
+            "is_broadcast": eth_layer.dst == "ff:ff:ff:ff:ff:ff" if eth_layer else False,
+            "subnet_mask": subnet_mask
         }
+        
+        print(f"[DHCPDetector] Extracted details: {details}")
 
         return details

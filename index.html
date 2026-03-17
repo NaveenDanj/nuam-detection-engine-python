@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LAN Engine — Network LAN Detection Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#edfff7',
+                            100: '#d5ffee',
+                            200: '#aeffdd',
+                            300: '#70ffca',
+                            400: '#2bfcb0',
+                            500: '#00e898',
+                            600: '#00bf7c',
+                            700: '#009664',
+                            800: '#037551',
+                            900: '#046044',
+                        },
+                        navy: {
+                            900: '#0a0f1e',
+                            800: '#0d1630',
+                            700: '#111d42',
+                            600: '#162154',
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+                    },
+                    animation: {
+                        pulse2: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.7s ease forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(16px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(rgba(0, 232, 152, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 232, 152, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .code-block {
+            background: #0d1117;
+            border: 1px solid rgba(0, 232, 152, 0.2);
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 0.8rem;
+            line-height: 1.7;
+            color: #e6edf3;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+
+        .code-block .string {
+            color: #a5d6ff;
+        }
+
+        .code-block .comment {
+            color: #8b949e;
+        }
+
+        .code-block .value {
+            color: #79c0ff;
+        }
+
+        .code-block .key {
+            color: #7ee787;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .section-enter {
+            animation: fadeIn 0.7s ease forwards;
+        }
+
+        nav a {
+            transition: color 0.2s;
+        }
+
+        .flow-line {
+            stroke: #00e898;
+            stroke-width: 1.5;
+            stroke-dasharray: 5 3;
+        }
+
+        .glow {
+            box-shadow: 0 0 24px rgba(0, 232, 152, 0.18);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0f1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #009664;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body class="bg-navy-900 text-slate-200 antialiased">
+
+    <!-- ─── NAV ──────────────────────────────────────────────────────────────── -->
+    <header class="fixed top-0 inset-x-0 z-50 bg-navy-900/90 backdrop-blur border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
+            <a href="#hero" class="flex items-center gap-2 font-bold text-white">
+                <span
+                    class="w-7 h-7 rounded-md bg-brand-500 flex items-center justify-center text-navy-900 text-xs font-black">LAN</span>
+                LAN Engine
+            </a>
+            <nav class="hidden md:flex items-center gap-6 text-sm text-slate-400">
+                <a href="#repos" class="hover:text-brand-400">Repositories</a>
+                <a href="#about" class="hover:text-brand-400">About</a>
+                <a href="#arch" class="hover:text-brand-400">Architecture</a>
+                <a href="#tech" class="hover:text-brand-400">Tech Stack</a>
+                <a href="#install" class="hover:text-brand-400">Install</a>
+                <a href="#usage" class="hover:text-brand-400">Usage</a>
+                <a href="#team" class="hover:text-brand-400">Team</a>
+                <a href="https://github.com/NaveenDanj/nuam-detection-engine-python" target="_blank"
+                    class="tag bg-brand-500/10 text-brand-400 border border-brand-500/30 hover:bg-brand-500/20">
+                    GitHub ↗
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center grid-bg overflow-hidden">
+        <!-- glow blobs -->
+        <div
+            class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-brand-500/5 blur-3xl pointer-events-none">
+        </div>
+        <div class="absolute bottom-10 right-10 w-64 h-64 rounded-full bg-blue-500/5 blur-3xl pointer-events-none">
+        </div>
+
+        <div class="relative max-w-4xl mx-auto px-6 text-center py-32">
+            <span class="tag bg-brand-500/10 text-brand-400 border border-brand-500/30 mb-6 inline-block">
+                v1.0 · Open Source · MIT License
+            </span>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+                LAN<span class="text-brand-400"> Engine</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Passive LAN detection engine that sniffs packets, identifies connected hosts via
+                nine-protocol analysis, tracks device lifecycle, and streams structured events
+                to a backend service in real time.
+            </p>
+            <div class="flex flex-wrap gap-3 justify-center mb-14">
+                <a href="#install"
+                    class="px-6 py-3 rounded-lg bg-brand-500 text-navy-900 font-semibold hover:bg-brand-400 transition">
+                    Get Started
+                </a>
+                <a href="#arch"
+                    class="px-6 py-3 rounded-lg border border-slate-700 text-slate-300 font-semibold hover:border-brand-500 hover:text-brand-400 transition">
+                    View Architecture
+                </a>
+            </div>
+
+            <!-- quick stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="p-4 rounded-xl bg-navy-800 border border-slate-800">
+                    <div class="text-2xl font-bold text-brand-400">9</div>
+                    <div class="text-xs text-slate-500 mt-1">Protocols Detected</div>
+                </div>
+                <div class="p-4 rounded-xl bg-navy-800 border border-slate-800">
+                    <div class="text-2xl font-bold text-brand-400">5 s</div>
+                    <div class="text-xs text-slate-500 mt-1">Metric Interval</div>
+                </div>
+                <div class="p-4 rounded-xl bg-navy-800 border border-slate-800">
+                    <div class="text-2xl font-bold text-brand-400">WS</div>
+                    <div class="text-xs text-slate-500 mt-1">Real-time Events</div>
+                </div>
+                <div class="p-4 rounded-xl bg-navy-800 border border-slate-800">
+                    <div class="text-2xl font-bold text-brand-400">OUI</div>
+                    <div class="text-xs text-slate-500 mt-1">Vendor Fingerprinting</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── QUICK START ───────────────────────────────────────────────────────── -->
+    <section class="py-20 bg-navy-800 border-y border-slate-800">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="flex items-center gap-3 mb-8">
+                <span
+                    class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">⚡</span>
+                <h2 class="text-2xl font-bold text-white">Quick Start</h2>
+            </div>
+            <div class="code-block glow">
+                <pre><span class="comment"># 1. Clone &amp; enter the project</span>
+git clone https://github.com/NaveenDanj/nuam-detection-engine-python
+cd IDS-engine
+
+<span class="comment"># 2. Create and activate a virtual environment</span>
+python -m venv venv
+.\venv\Scripts\Activate.ps1      <span class="comment"> # Windows</span>
+<span class="comment"># source venv/bin/activate        # Linux / macOS</span>
+
+<span class="comment"># 3. Install dependencies</span>
+pip install -r requirements.txt
+
+<span class="comment"># 4. Configure (edit .env) then run as Administrator / root</span>
+python start_detection.py</pre>
+            </div>
+            <p class="text-sm text-amber-400 mt-4 flex items-center gap-2">
+                <span>⚠</span> Packet sniffing requires <strong>administrator / root</strong> privileges.
+            </p>
+        </div>
+    </section>
+
+    <!-- ─── REPOSITORIES ─────────────────────────────────────────────────────── -->
+    <section id="repos" class="py-24 max-w-7xl mx-auto px-6">
+        <div class="mb-4">
+            <span class="tag bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Repositories</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Main Project Repositories</h2>
+        <p class="text-slate-400 max-w-2xl mb-12">
+            LAN Engine ecosystem is split across three repositories: detection engine, backend API, and admin dashboard.
+        </p>
+
+        <div class="grid lg:grid-cols-3 gap-6">
+            <a href="https://github.com/NaveenDanj/nuam-detection-engine-python" target="_blank"
+                class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 hover:-translate-y-1 transition block">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="tag bg-brand-500/10 text-brand-400 border border-brand-500/20">Core</span>
+                    <span class="text-slate-500">↗</span>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Detection Engine</h3>
+                <p class="text-sm text-slate-400 mb-4">Packet sniffing, protocol detection, device state tracking, and
+                    event generation.</p>
+                <p class="text-xs text-slate-500 break-all">github.com/NaveenDanj/nuam-detection-engine-python</p>
+            </a>
+
+            <a href="https://github.com/RavinduPe/nuam-backend-python" target="_blank"
+                class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 hover:-translate-y-1 transition block">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="tag bg-blue-500/10 text-blue-400 border border-blue-500/20">Backend</span>
+                    <span class="text-slate-500">↗</span>
+                </div>
+                <h3 class="text-white font-semibold mb-2">NUAM Backend (Python)</h3>
+                <p class="text-sm text-slate-400 mb-4">Receives detection events, provides APIs, and serves backend
+                    processing logic.</p>
+                <p class="text-xs text-slate-500 break-all">github.com/RavinduPe/nuam-backend-python</p>
+            </a>
+
+            <a href="https://github.com/NaveenDanj/nuam-admin-dashboard-react" target="_blank"
+                class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 hover:-translate-y-1 transition block">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="tag bg-pink-500/10 text-pink-400 border border-pink-500/20">Frontend</span>
+                    <span class="text-slate-500">↗</span>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Admin Dashboard (React)</h3>
+                <p class="text-sm text-slate-400 mb-4">Web UI for monitoring devices, topology, and metrics streamed by
+                    the engine.</p>
+                <p class="text-xs text-slate-500 break-all">github.com/NaveenDanj/nuam-admin-dashboard-react</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- ─── ABOUT ─────────────────────────────────────────────────────────────── -->
+    <section id="about" class="py-24 max-w-7xl mx-auto px-6">
+        <div class="mb-4">
+            <span class="tag bg-blue-500/10 text-blue-400 border border-blue-500/20">About</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Project Description</h2>
+        <p class="text-slate-400 max-w-3xl text-lg mb-16 leading-relaxed">
+            LAN Engine runs as a background Python process on a host with LAN access. It uses
+            <span class="text-brand-400">Scapy</span> to capture raw packets and routes each
+            through a detection pipeline that classifies protocol types, extracts device
+            metadata, and maintains a stateful map of known devices.
+        </p>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-16">
+            <!-- problem -->
+            <div class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div class="text-2xl mb-3">🔍</div>
+                <h3 class="font-semibold text-white mb-2">Problem Statement</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    In modern LAN environments, manually tracking devices leads to incomplete
+                    network visibility, delayed threat detection, and poor operational awareness.
+                </p>
+            </div>
+            <!-- solution -->
+            <div class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div class="text-2xl mb-3">🛡️</div>
+                <h3 class="font-semibold text-white mb-2">Solution</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Passive, zero-disruption packet sniffing with nine protocol detectors,
+                    OUI-based vendor fingerprinting, and real-time WebSocket streaming to
+                    enable continuous LAN visibility.
+                </p>
+            </div>
+            <!-- users -->
+            <div class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div class="text-2xl mb-3">👥</div>
+                <h3 class="font-semibold text-white mb-2">Target Users</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Network administrators, security professionals conducting audits, and
+                    researchers analysing device behaviour in controlled lab environments.
+                </p>
+            </div>
+        </div>
+
+        <!-- objectives -->
+        <div class="p-8 rounded-2xl bg-navy-800 border border-slate-800">
+            <h3 class="font-semibold text-white mb-6 text-lg">Objectives</h3>
+            <ul class="grid md:grid-cols-2 gap-3">
+                <li class="flex items-start gap-3 text-sm text-slate-300">
+                    <span class="text-brand-400 mt-0.5 text-base">✓</span>
+                    Passively detect all devices active on a LAN without injecting disruptive traffic.
+                </li>
+                <li class="flex items-start gap-3 text-sm text-slate-300">
+                    <span class="text-brand-400 mt-0.5 text-base">✓</span>
+                    Identify devices using 9 protocol-based detection methods: ARP, DHCP, DNS, ICMP, IP, TCP-IP, SMB,
+                    TLS, UDP.
+                </li>
+                <li class="flex items-start gap-3 text-sm text-slate-300">
+                    <span class="text-brand-400 mt-0.5 text-base">✓</span>
+                    Fingerprint devices by matching MAC OUI prefixes to known vendors.
+                </li>
+                <li class="flex items-start gap-3 text-sm text-slate-300">
+                    <span class="text-brand-400 mt-0.5 text-base">✓</span>
+                    Track device lifecycle transitions: joined → idle → left.
+                </li>
+                <li class="flex items-start gap-3 text-sm text-slate-300">
+                    <span class="text-brand-400 mt-0.5 text-base">✓</span>
+                    Stream structured, sequenced events to a backend service in real time.
+                </li>
+                <li class="flex items-start gap-3 text-sm text-slate-300">
+                    <span class="text-brand-400 mt-0.5 text-base">✓</span>
+                    Provide periodic topology and metric snapshots for dashboards and audits.
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ─── ARCHITECTURE ──────────────────────────────────────────────────────── -->
+    <section id="arch" class="py-24 bg-navy-800 border-y border-slate-800">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-4">
+                <span class="tag bg-purple-500/10 text-purple-400 border border-purple-500/20">Architecture</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">System Design</h2>
+            <p class="text-slate-400 max-w-2xl mb-16">
+                A linear, single-concern pipeline from raw packet capture to structured event delivery.
+            </p>
+
+            <!-- flow diagram -->
+            <div class="flex flex-col items-center gap-0 mb-20 max-w-sm mx-auto">
+                <!-- nodes -->
+                <div class="w-full p-4 rounded-xl bg-navy-700 border border-brand-500/40 text-center glow">
+                    <div class="text-xs text-brand-400 font-mono font-semibold mb-1">CAPTURE</div>
+                    <div class="text-white font-semibold">Scapy Packet Sniffer</div>
+                </div>
+                <div class="flex flex-col items-center py-1">
+                    <div class="w-px h-6 bg-brand-500/40"></div>
+                    <div class="text-brand-400 text-xs">▼</div>
+                </div>
+                <div class="w-full p-4 rounded-xl bg-navy-700 border border-slate-700 text-center">
+                    <div class="text-xs text-blue-400 font-mono font-semibold mb-1">CLASSIFY</div>
+                    <div class="text-white font-semibold">DetectionEngine</div>
+                    <div class="text-xs text-slate-500 mt-1">ARP · DHCP · DNS · ICMP · IP · TCP · SMB · TLS · UDP</div>
+                </div>
+                <div class="flex flex-col items-center py-1">
+                    <div class="w-px h-6 bg-brand-500/40"></div>
+                    <div class="text-brand-400 text-xs">▼</div>
+                </div>
+                <div class="w-full p-4 rounded-xl bg-navy-700 border border-slate-700 text-center">
+                    <div class="text-xs text-teal-400 font-mono font-semibold mb-1">EXTRACT</div>
+                    <div class="text-white font-semibold">Protocol Detectors</div>
+                    <div class="text-xs text-slate-500 mt-1">IP · MAC · hostname · ports · flags</div>
+                </div>
+                <div class="flex flex-col items-center py-1">
+                    <div class="w-px h-6 bg-brand-500/40"></div>
+                    <div class="text-brand-400 text-xs">▼</div>
+                </div>
+                <div class="w-full p-4 rounded-xl bg-navy-700 border border-slate-700 text-center">
+                    <div class="text-xs text-yellow-400 font-mono font-semibold mb-1">STATE</div>
+                    <div class="text-white font-semibold">DataHandler</div>
+                    <div class="text-xs text-slate-500 mt-1">known_devices map · metrics · periodic tasks</div>
+                </div>
+                <div class="flex flex-col items-center py-1">
+                    <div class="w-px h-6 bg-brand-500/40"></div>
+                    <div class="text-brand-400 text-xs">▼</div>
+                </div>
+                <div class="w-full p-4 rounded-xl bg-navy-700 border border-slate-700 text-center">
+                    <div class="text-xs text-orange-400 font-mono font-semibold mb-1">SHAPE</div>
+                    <div class="text-white font-semibold">EventTypeHandler</div>
+                    <div class="text-xs text-slate-500 mt-1">typed · sequenced JSON payloads</div>
+                </div>
+                <div class="flex flex-col items-center py-1">
+                    <div class="w-px h-6 bg-brand-500/40"></div>
+                    <div class="text-brand-400 text-xs">▼</div>
+                </div>
+                <div class="w-full p-4 rounded-xl bg-navy-700 border border-slate-700 text-center">
+                    <div class="text-xs text-red-400 font-mono font-semibold mb-1">DELIVER</div>
+                    <div class="text-white font-semibold">Logger</div>
+                    <div class="flex justify-center gap-4 mt-2">
+                        <span class="tag bg-brand-500/10 text-brand-400 border border-brand-500/20">WebSocket</span>
+                        <span class="tag bg-slate-700 text-slate-300 border border-slate-600">logs.txt fallback</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- components table -->
+            <h3 class="text-xl font-semibold text-white mb-4">Components</h3>
+            <div class="overflow-x-auto rounded-xl border border-slate-800 mb-14">
+                <table class="w-full text-sm">
+                    <thead class="bg-navy-900 text-slate-400 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-5 py-3 text-left">Component</th>
+                            <th class="px-5 py-3 text-left">Location</th>
+                            <th class="px-5 py-3 text-left">Responsibility</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400">DetectionEngine</td>
+                            <td class="px-5 py-3 text-slate-400">engine/core.py</td>
+                            <td class="px-5 py-3 text-slate-300">Classifies protocol layer(s) present in each packet
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400">ARPDetector…UDPDetector</td>
+                            <td class="px-5 py-3 text-slate-400">detector/</td>
+                            <td class="px-5 py-3 text-slate-300">Extracts device metadata per protocol</td>
+                        </tr>
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400">DataHandler</td>
+                            <td class="px-5 py-3 text-slate-400">handler/data_handler.py</td>
+                            <td class="px-5 py-3 text-slate-300">Maintains known_devices map, drives periodic tasks</td>
+                        </tr>
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400">EventTypeHandler</td>
+                            <td class="px-5 py-3 text-slate-400">handler/event_handler.py</td>
+                            <td class="px-5 py-3 text-slate-300">Produces typed JSON event payloads</td>
+                        </tr>
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400">Logger</td>
+                            <td class="px-5 py-3 text-slate-400">logger/logger.py</td>
+                            <td class="px-5 py-3 text-slate-300">WebSocket client with auto-reconnect; falls back to
+                                file</td>
+                        </tr>
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400">FingerprintEngine</td>
+                            <td class="px-5 py-3 text-slate-400">device_fingerprint_analyzer/</td>
+                            <td class="px-5 py-3 text-slate-300">Resolves vendor name from MAC OUI prefix</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- periodic tasks -->
+            <h3 class="text-xl font-semibold text-white mb-4">Periodic Tasks</h3>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-5 rounded-xl bg-navy-900 border border-slate-800 hover:border-brand-500/30 transition">
+                    <div class="text-brand-400 text-xl mb-2">⏱</div>
+                    <div class="text-white font-semibold text-sm mb-1">Device Left Check</div>
+                    <div class="text-xs text-slate-500">Every 15 s</div>
+                    <div class="mt-3"><span
+                            class="tag bg-red-500/10 text-red-400 border border-red-500/20">DEVICE_LEFT</span></div>
+                </div>
+                <div class="p-5 rounded-xl bg-navy-900 border border-slate-800 hover:border-brand-500/30 transition">
+                    <div class="text-yellow-400 text-xl mb-2">😴</div>
+                    <div class="text-white font-semibold text-sm mb-1">Idle Detection</div>
+                    <div class="text-xs text-slate-500">30 s idle threshold</div>
+                    <div class="mt-3"><span
+                            class="tag bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">DEVICE_IDLE</span>
+                    </div>
+                </div>
+                <div class="p-5 rounded-xl bg-navy-900 border border-slate-800 hover:border-brand-500/30 transition">
+                    <div class="text-blue-400 text-xl mb-2">📊</div>
+                    <div class="text-white font-semibold text-sm mb-1">Metrics Snapshot</div>
+                    <div class="text-xs text-slate-500">Every 5 s</div>
+                    <div class="mt-3"><span
+                            class="tag bg-blue-500/10 text-blue-400 border border-blue-500/20">PERIODIC_METRIC_STATE</span>
+                    </div>
+                </div>
+                <div class="p-5 rounded-xl bg-navy-900 border border-slate-800 hover:border-brand-500/30 transition">
+                    <div class="text-purple-400 text-xl mb-2">🗺</div>
+                    <div class="text-white font-semibold text-sm mb-1">Topology Snapshot</div>
+                    <div class="text-xs text-slate-500">Every 10 s</div>
+                    <div class="mt-3"><span
+                            class="tag bg-purple-500/10 text-purple-400 border border-purple-500/20">PERIODIC_TOPOLOGY_STATE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── TECH STACK ─────────────────────────────────────────────────────────── -->
+    <section id="tech" class="py-24 max-w-7xl mx-auto px-6">
+        <div class="mb-4">
+            <span class="tag bg-teal-500/10 text-teal-400 border border-teal-500/20">Stack</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Technologies Used</h2>
+        <p class="text-slate-400 max-w-2xl mb-12">Pure Python, zero compiled binaries required beyond the venv
+            dependencies.</p>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div
+                class="flex items-center gap-4 p-5 rounded-xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div
+                    class="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    🐍</div>
+                <div>
+                    <div class="text-white font-semibold">Python</div>
+                    <div class="text-xs text-slate-500">3.10+ · Main language</div>
+                </div>
+            </div>
+            <div
+                class="flex items-center gap-4 p-5 rounded-xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div
+                    class="w-12 h-12 rounded-lg bg-brand-500/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    📡</div>
+                <div>
+                    <div class="text-white font-semibold">Scapy</div>
+                    <div class="text-xs text-slate-500">2.7.0 · Packet capture &amp; parsing</div>
+                </div>
+            </div>
+            <div
+                class="flex items-center gap-4 p-5 rounded-xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div
+                    class="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    🔌</div>
+                <div>
+                    <div class="text-white font-semibold">websocket-client</div>
+                    <div class="text-xs text-slate-500">1.9.0 · Real-time event streaming</div>
+                </div>
+            </div>
+            <div
+                class="flex items-center gap-4 p-5 rounded-xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div
+                    class="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    ⚙️</div>
+                <div>
+                    <div class="text-white font-semibold">python-dotenv</div>
+                    <div class="text-xs text-slate-500">1.2.2 · .env config loading</div>
+                </div>
+            </div>
+            <div
+                class="flex items-center gap-4 p-5 rounded-xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div
+                    class="w-12 h-12 rounded-lg bg-slate-500/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    🌐</div>
+                <div>
+                    <div class="text-white font-semibold">requests</div>
+                    <div class="text-xs text-slate-500">2.32.5 · HTTP client</div>
+                </div>
+            </div>
+            <div
+                class="flex items-center gap-4 p-5 rounded-xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition">
+                <div
+                    class="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    🗃️</div>
+                <div>
+                    <div class="text-white font-semibold">IEEE OUI CSV</div>
+                    <div class="text-xs text-slate-500">data/oui.csv · Vendor fingerprinting</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── INSTALL ────────────────────────────────────────────────────────────── -->
+    <section id="install" class="py-24 bg-navy-800 border-y border-slate-800">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-4">
+                <span class="tag bg-orange-500/10 text-orange-400 border border-orange-500/20">Install</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Installation Instructions</h2>
+            <p class="text-slate-400 max-w-2xl mb-14">Works on Windows, Linux, and macOS wherever Python 3.10+ and Scapy
+                are supported.</p>
+
+            <div class="grid lg:grid-cols-2 gap-8 mb-12">
+                <!-- windows -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-blue-400">🪟</span>
+                        <h3 class="text-white font-semibold">Windows (PowerShell Admin)</h3>
+                    </div>
+                    <div class="code-block">
+                        <pre><span class="comment"># Clone the repository</span>
+git clone https://github.com/NaveenDanj/nuam-detection-engine-python
+cd IDS-engine
+
+<span class="comment"># Virtual environment</span>
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+<span class="comment"># Install dependencies</span>
+pip install -r requirements.txt</pre>
+                    </div>
+                </div>
+                <!-- linux -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-brand-400">🐧</span>
+                        <h3 class="text-white font-semibold">Linux / macOS</h3>
+                    </div>
+                    <div class="code-block">
+                        <pre><span class="comment"># Clone the repository</span>
+git clone https://github.com/NaveenDanj/nuam-detection-engine-python
+cd IDS-engine
+
+<span class="comment"># Virtual environment</span>
+python3 -m venv venv
+source venv/bin/activate
+
+<span class="comment"># Install dependencies</span>
+pip install -r requirements.txt</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- config -->
+            <h3 class="text-xl font-semibold text-white mb-4">Configuration (.env)</h3>
+            <div class="code-block mb-8 max-w-2xl">
+                <pre><span class="key">DETECTION_ENGINE_PATH</span>=<span class="string">"./start_detection.py"</span>
+<span class="key">BACKEND_WS_URL</span>=<span class="string">"ws://192.168.56.1:8000/ws/device"</span>
+<span class="key">LOG_PATH</span>=<span class="string">"./logs.txt"</span></pre>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-800 max-w-3xl">
+                <table class="w-full text-sm">
+                    <thead class="bg-navy-900 text-slate-400 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-5 py-3 text-left">Variable</th>
+                            <th class="px-5 py-3 text-left">Description</th>
+                            <th class="px-5 py-3 text-left">Default</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400 text-xs">DETECTION_ENGINE_PATH</td>
+                            <td class="px-5 py-3 text-slate-400">Script spawned by main.py</td>
+                            <td class="px-5 py-3 font-mono text-slate-500 text-xs">./start_detection.py</td>
+                        </tr>
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400 text-xs">BACKEND_WS_URL</td>
+                            <td class="px-5 py-3 text-slate-400">WebSocket endpoint for event streaming</td>
+                            <td class="px-5 py-3 font-mono text-slate-500 text-xs">ws://192.168.56.1:8000/ws/device</td>
+                        </tr>
+                        <tr class="hover:bg-navy-900/50 transition">
+                            <td class="px-5 py-3 font-mono text-brand-400 text-xs">LOG_PATH</td>
+                            <td class="px-5 py-3 text-slate-400">Local fallback log file path</td>
+                            <td class="px-5 py-3 font-mono text-slate-500 text-xs">./logs.txt</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── USAGE ──────────────────────────────────────────────────────────────── -->
+    <section id="usage" class="py-24 max-w-7xl mx-auto px-6">
+        <div class="mb-4">
+            <span class="tag bg-brand-500/10 text-brand-400 border border-brand-500/20">Usage</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Usage Instructions</h2>
+        <p class="text-slate-400 max-w-2xl mb-14">Two entry points are available — choose based on your workflow.</p>
+
+        <div class="grid lg:grid-cols-2 gap-8 mb-14">
+            <!-- option 1 -->
+            <div class="p-6 rounded-2xl bg-navy-800 border border-brand-500/30 glow">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="tag bg-brand-500 text-navy-900">Option 1</span>
+                    <span class="text-white font-semibold">Direct — Recommended</span>
+                </div>
+                <div class="code-block">
+                    <pre>python start_detection.py</pre>
+                </div>
+                <p class="text-xs text-slate-500 mt-3">
+                    Starts the detection engine, WebSocket logger, and all periodic tasks in-process.
+                </p>
+            </div>
+            <!-- option 2 -->
+            <div class="p-6 rounded-2xl bg-navy-800 border border-slate-800">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="tag bg-slate-700 text-slate-300 border border-slate-600">Option 2</span>
+                    <span class="text-white font-semibold">Launcher</span>
+                </div>
+                <div class="code-block">
+                    <pre>python main.py</pre>
+                </div>
+                <p class="text-xs text-slate-500 mt-3">
+                    Spawns start_detection.py as a subprocess — useful for diagnosing subprocess-level errors.
+                </p>
+            </div>
+        </div>
+
+        <!-- event output -->
+        <h3 class="text-xl font-semibold text-white mb-4">Example Event Output</h3>
+        <p class="text-slate-400 text-sm mb-4">
+            When a new device is detected, a <code class="text-brand-400">DEVICE_JOINED</code> event is streamed to the
+            backend (or written to <code class="text-slate-300">logs.txt</code> if offline):
+        </p>
+        <div class="code-block mb-14 max-w-3xl">
+            <pre>{
+  <span class="key">"meta"</span>: {
+    <span class="key">"timestamp"</span>: <span class="string">"2026-03-16T10:05:23.412Z"</span>,
+    <span class="key">"sequence"</span>: <span class="value">1</span>
+  },
+  <span class="key">"type"</span>: <span class="string">"TOPOLOGY"</span>,
+  <span class="key">"subtype"</span>: <span class="string">"DEVICE_JOINED"</span>,
+  <span class="key">"payload"</span>: {
+    <span class="key">"event_type"</span>: <span class="string">"device_connected"</span>,
+    <span class="key">"device"</span>: {
+      <span class="key">"device_id"</span>: <span class="string">"aa:bb:cc:dd:ee:ff"</span>,
+      <span class="key">"hostname"</span>: <span class="string">"mydevice.local"</span>,
+      <span class="key">"ip_address"</span>: <span class="string">"192.168.1.42"</span>,
+      <span class="key">"vendor"</span>: <span class="string">"Raspberry Pi Trading Ltd"</span>,
+      <span class="key">"first_seen"</span>: <span class="string">"2026-03-16T10:05:23.412Z"</span>
+    }
+  }
+}</pre>
+        </div>
+
+        <!-- protocols grid -->
+        <h3 class="text-xl font-semibold text-white mb-6">Detected Protocols</h3>
+        <div class="flex flex-wrap gap-3">
+            <span class="tag bg-red-500/10 text-red-300 border border-red-500/20 text-xs px-4 py-2">ARP</span>
+            <span class="tag bg-orange-500/10 text-orange-300 border border-orange-500/20 text-xs px-4 py-2">DHCP</span>
+            <span class="tag bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 text-xs px-4 py-2">DNS</span>
+            <span class="tag bg-green-500/10 text-green-300 border border-green-500/20 text-xs px-4 py-2">ICMP</span>
+            <span class="tag bg-teal-500/10 text-teal-300 border border-teal-500/20 text-xs px-4 py-2">IP</span>
+            <span class="tag bg-blue-500/10 text-blue-300 border border-blue-500/20 text-xs px-4 py-2">TCP-IP</span>
+            <span class="tag bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs px-4 py-2">SMB</span>
+            <span class="tag bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs px-4 py-2">TLS</span>
+            <span class="tag bg-pink-500/10 text-pink-300 border border-pink-500/20 text-xs px-4 py-2">UDP</span>
+        </div>
+    </section>
+
+    <!-- ─── PROJECT STRUCTURE ─────────────────────────────────────────────────── -->
+    <section class="py-24 bg-navy-800 border-y border-slate-800">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-4">
+                <span class="tag bg-slate-500/10 text-slate-400 border border-slate-600">Structure</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-12">Project Structure</h2>
+            <div class="code-block max-w-3xl">
+                <pre>IDS-engine/
+├── <span class="key">.env</span>                     <span class="comment"># Runtime configuration</span>
+├── <span class="key">start_detection.py</span>       <span class="comment"># Main entry point</span>
+├── <span class="key">main.py</span>                  <span class="comment"># Subprocess launcher</span>
+├── <span class="key">requirements.txt</span>
+├── <span class="key">LICENSE</span>                  <span class="comment"># MIT Licence</span>
+│
+├── engine/
+│   ├── <span class="value">core.py</span>              <span class="comment"># DetectionEngine</span>
+│   └── <span class="value">config.py</span>            <span class="comment"># Detector registry &amp; env</span>
+│
+├── detector/
+│   ├── <span class="value">ARPDetector.py</span>
+│   ├── <span class="value">DHCPDetector.py</span>
+│   ├── <span class="value">DNSDetector.py</span>
+│   ├── <span class="value">ICMPDetector.py</span>
+│   ├── <span class="value">IPDetector.py</span>
+│   ├── <span class="value">SMBDetector.py</span>
+│   ├── <span class="value">TCPIPDetector.py</span>
+│   ├── <span class="value">TLSDetector.py</span>
+│   └── <span class="value">UDPDetector.py</span>
+│
+├── handler/
+│   ├── <span class="value">data_handler.py</span>      <span class="comment"># Device state &amp; periodic tasks</span>
+│   ├── <span class="value">event_handler.py</span>     <span class="comment"># Event payload shaping</span>
+│   └── <span class="value">periodic_checker_handler.py</span>
+│
+├── packet_analyzer/
+│   ├── <span class="value">device_connectivity_analyzer.py</span>
+│   ├── <span class="value">device_stat_analyzer.py</span>
+│   └── <span class="value">metric_analyzer.py</span>
+│
+├── device_fingerprint_analyzer/
+│   ├── <span class="value">fingerprint_engine.py</span> <span class="comment"># OUI vendor lookup</span>
+│   └── <span class="value">oui_loader.py</span>        <span class="comment"># CSV -&gt; pickle cache</span>
+│
+├── logger/
+│   └── <span class="value">logger.py</span>            <span class="comment"># WS client + file fallback</span>
+│
+├── network/
+│   ├── <span class="value">runner.py</span>
+│   └── <span class="value">topology.py</span>
+│
+└── data/
+    └── <span class="value">oui.csv</span>              <span class="comment"># IEEE OUI registry</span></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── TEAM ──────────────────────────────────────────────────────────────── -->
+    <section id="team" class="py-24 max-w-7xl mx-auto px-6">
+        <div class="mb-4">
+            <span class="tag bg-pink-500/10 text-pink-400 border border-pink-500/20">Team</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-12">Contributors</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-2xl">
+            <!-- contributor 1 -->
+            <div
+                class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition text-center">
+                <div
+                    class="w-14 h-14 rounded-full bg-brand-500/20 flex items-center justify-center text-2xl mx-auto mb-4">
+                    👨‍💻</div>
+                <div class="text-white font-semibold">Naveen Hettiwaththa</div>
+                <div class="text-xs text-slate-500 mt-1">Lead Developer</div>
+                <div class="mt-3">
+                    <span class="tag bg-brand-500/10 text-brand-400 border border-brand-500/20">Lead</span>
+                </div>
+            </div>
+            <!-- contributor 2 -->
+            <div
+                class="p-6 rounded-2xl bg-navy-800 border border-slate-800 hover:border-brand-500/40 transition text-center">
+                <div
+                    class="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center text-2xl mx-auto mb-4">
+                    👨‍💻</div>
+                <div class="text-white font-semibold">Ravindu Peshan</div>
+                <div class="text-xs text-slate-500 mt-1">Developer</div>
+                <div class="mt-3">
+                    <span class="tag bg-blue-500/10 text-blue-400 border border-blue-500/20">Dev</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── CONTACT ────────────────────────────────────────────────────────────── -->
+    <section class="py-20 bg-navy-800 border-y border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Get in Touch</h2>
+            <p class="text-slate-400 mb-10">Questions, issues, or contributions — reach out.</p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="https://github.com/NaveenDanj/nuam-detection-engine-python/issues" target="_blank"
+                    class="px-6 py-3 rounded-lg border border-slate-700 text-slate-300 font-semibold hover:border-brand-500 hover:text-brand-400 transition flex items-center gap-2">
+                    🐛 Open an Issue
+                </a>
+                <a href="mailto:naveenhettiwaththa@gmail.com"
+                    class="px-6 py-3 rounded-lg bg-brand-500 text-navy-900 font-semibold hover:bg-brand-400 transition flex items-center gap-2">
+                    ✉️ Email Us
+                </a>
+                <a href="https://github.com/NaveenDanj/nuam-detection-engine-python" target="_blank"
+                    class="px-6 py-3 rounded-lg border border-slate-700 text-slate-300 font-semibold hover:border-brand-500 hover:text-brand-400 transition flex items-center gap-2">
+                    ⭐ Star on GitHub
+                </a>
+            </div>
+
+            <div class="mt-10 text-sm text-slate-600">
+                University of Jaffna &nbsp;·&nbsp; naveenhettiwaththa@gmail.com
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── FOOTER ────────────────────────────────────────────────────────────── -->
+    <footer
+        class="py-10 max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
+        <div class="flex items-center gap-2">
+            <span
+                class="w-6 h-6 rounded bg-brand-500 flex items-center justify-center text-navy-900 text-xs font-black">LAN</span>
+            <span>LAN Engine</span>
+            <span>·</span>
+            <a href="LICENSE" class="hover:text-brand-400 transition">MIT License</a>
+            <span>·</span>
+            <span>© 2026 LAN Engine Contributors</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="#hero" class="hover:text-brand-400 transition">↑ Back to top</a>
+            <a href="https://github.com/NaveenDanj/nuam-detection-engine-python" target="_blank"
+                class="hover:text-brand-400 transition">GitHub ↗</a>
+        </div>
+    </footer>
+
+</body>
+
+</html>
