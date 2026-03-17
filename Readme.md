@@ -361,9 +361,9 @@ IDS-engine/
 ![Dashboard topology view](docs/screenshots/topology_dashboard.png)
 -->
 
-<!-- Add a demo video link like this:
-[![Demo Video](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
--->
+Add a demo video link like this:
+[![Demo Video](https://drive.google.com/file/d/1DS88ww9WOPVRE3yZo6-YTjvBJsrueXGL/view?usp=sharing)]([https://www.youtube.com/watch?v=VIDEO_ID](https://drive.google.com/file/d/1DS88ww9WOPVRE3yZo6-YTjvBJsrueXGL/view?usp=sharing))
+
 
 ---
 
