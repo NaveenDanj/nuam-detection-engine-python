@@ -117,6 +117,45 @@ WebSocket  logs.txt       <-- primary stream to backend / offline fallback
 
 ## Installation Instructions
 
+## Port Mirroring Setup (Switch Configuration)
+
+To capture all LAN traffic effectively, the IDS Engine should be connected to a **mirrored (SPAN) port** on your network switch. This ensures the monitoring device receives copies of packets from other ports.
+
+### What is Port Mirroring?
+
+Port mirroring (also known as **SPAN – Switched Port Analyzer**) allows a switch to send a copy of network packets seen on one or more ports (source ports) to another port (destination port), where the IDS Engine is connected.
+
+---
+
+### General Setup Steps
+
+#### Step1: Identify Ports
+- **Source Port(s):** Ports connected to devices you want to monitor (e.g., `1–23`)
+- **Destination Port:** Port connected to the IDS Engine machine (e.g., `24`)
+
+#### Step2: Access Switch Configuration
+- Connect to the switch via:
+  - Web interface (GUI), or
+  - CLI (SSH / Console)
+
+#### Step3: Configure Port Mirroring
+
+---
+
+### Example – Cisco Switch (CLI)
+
+```bash
+enable
+configure terminal
+
+# Create a monitoring session
+monitor session 1 source interface fa0/1 - 23
+monitor session 1 destination interface fa0/24
+
+end
+write memory
+```
+
 ### System Requirements
 
 - Python 3.10 or above
