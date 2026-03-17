@@ -362,7 +362,7 @@ IDS-engine/
 -->
 
 Add a demo video link like this:
-[![Demo Video](https://drive.google.com/file/d/1DS88ww9WOPVRE3yZo6-YTjvBJsrueXGL/view?usp=sharing)]([https://www.youtube.com/watch?v=VIDEO_ID](https://drive.google.com/file/d/1DS88ww9WOPVRE3yZo6-YTjvBJsrueXGL/view?usp=sharing))
+[Demo Video](https://drive.google.com/file/d/1DS88ww9WOPVRE3yZo6-YTjvBJsrueXGL/view?usp=sharing)
 
 
 ---
